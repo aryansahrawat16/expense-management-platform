@@ -9,6 +9,7 @@ from sqlalchemy import func
 from database import get_db
 import models, schemas
 from auth import get_current_user
+from recurring import get_synced_user
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
@@ -36,7 +37,7 @@ def list_expenses(
     start_date: Optional[date] = Query(None),
     end_date: Optional[date] = Query(None),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_synced_user),
 ):
     return expense_query(db, current_user, category, start_date, end_date)\
         .order_by(models.Expense.date.desc()).all()
@@ -56,7 +57,7 @@ def dashboard(
     start_date: Optional[date] = Query(None),
     end_date: Optional[date] = Query(None),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_synced_user),
 ):
     today = date.today()
     all_expenses = expense_query(db, current_user, category, start_date, end_date).all()
@@ -88,7 +89,7 @@ def export_csv(
     start_date: Optional[date] = Query(None),
     end_date: Optional[date] = Query(None),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_synced_user),
 ):
     expenses = expense_query(db, current_user, category, start_date, end_date)\
         .order_by(models.Expense.date.desc()).all()

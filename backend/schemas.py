@@ -1,7 +1,10 @@
 from datetime import date as Date, datetime
 from typing import Annotated, Literal, Optional
-from pydantic import AfterValidator, BaseModel, EmailStr, Field
+from pydantic import AfterValidator, BaseModel, EmailStr, Field, field_validator
 from categories import CATEGORIES
+
+Frequency = Literal["weekly", "monthly", "yearly"]
+
 
 def _check_category(value: str) -> str:
     if value not in CATEGORIES:
@@ -106,3 +109,39 @@ class Trends(BaseModel):
     change_pct: Optional[float]
     projected_month_total: float
     categories: list[CategoryChange]
+
+
+class RecurringCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    amount: float = Field(gt=0, le=1_000_000)
+    category: Category
+    notes: Optional[str] = Field("", max_length=1000)
+    frequency: Frequency
+    start_date: Date
+
+    @field_validator("start_date")
+    @classmethod
+    def not_too_old(cls, v: Date) -> Date:
+        if (Date.today() - v).days > 366:
+            raise ValueError("start_date can be at most one year in the past")
+        return v
+
+
+class RecurringUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
+    amount: Optional[float] = Field(None, gt=0, le=1_000_000)
+    category: Optional[Category] = None
+    notes: Optional[str] = Field(None, max_length=1000)
+    active: Optional[bool] = None
+
+
+class RecurringOut(BaseModel):
+    id: int
+    title: str
+    amount: float
+    category: str
+    notes: str
+    frequency: Frequency
+    next_date: Date
+    active: bool
+    model_config = {"from_attributes": True}

@@ -2,7 +2,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from auth import get_current_user
+from recurring import get_synced_user
 from stats import shift_month, spending_by_month
 import models, schemas
 
@@ -29,13 +29,13 @@ def budget_statuses(db: Session, user: models.User) -> list[schemas.BudgetStatus
 
 
 @router.get("/", response_model=list[schemas.BudgetStatus])
-def list_budgets(db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
+def list_budgets(db: Session = Depends(get_db), user: models.User = Depends(get_synced_user)):
     return budget_statuses(db, user)
 
 
 @router.put("/", response_model=list[schemas.BudgetStatus])
 def upsert_budget(body: schemas.BudgetIn, db: Session = Depends(get_db),
-                  user: models.User = Depends(get_current_user)):
+                  user: models.User = Depends(get_synced_user)):
     budget = db.query(models.Budget).filter(
         models.Budget.owner_id == user.id, models.Budget.category == body.category
     ).first()
@@ -49,7 +49,7 @@ def upsert_budget(body: schemas.BudgetIn, db: Session = Depends(get_db),
 
 @router.delete("/{budget_id}", status_code=204)
 def delete_budget(budget_id: int, db: Session = Depends(get_db),
-                  user: models.User = Depends(get_current_user)):
+                  user: models.User = Depends(get_synced_user)):
     budget = db.query(models.Budget).filter(
         models.Budget.id == budget_id, models.Budget.owner_id == user.id
     ).first()

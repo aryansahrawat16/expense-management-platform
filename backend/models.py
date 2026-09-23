@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Date, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint,
+    Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -15,6 +15,7 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     expenses = relationship("Expense", back_populates="owner", cascade="all, delete")
     budgets = relationship("Budget", cascade="all, delete")
+    recurring = relationship("RecurringExpense", cascade="all, delete")
 
 
 class Expense(Base):
@@ -37,3 +38,19 @@ class Budget(Base):
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     category = Column(String, nullable=False)
     monthly_limit = Column(Float, nullable=False)
+
+
+class RecurringExpense(Base):
+    __tablename__ = "recurring_expenses"
+    id = Column(Integer, primary_key=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    title = Column(String, nullable=False)
+    amount = Column(Float, nullable=False)
+    category = Column(String, nullable=False)
+    notes = Column(String, default="")
+    frequency = Column(String, nullable=False)
+    # original day of month, so jan 31 -> feb 28 -> mar 31 (not stuck on the 28th)
+    anchor_day = Column(Integer, nullable=False)
+    next_date = Column(Date, nullable=False)
+    active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
