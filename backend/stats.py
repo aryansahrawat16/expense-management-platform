@@ -23,3 +23,9 @@ def spending_by_month(db: Session, owner_id: int, since: date) -> dict[tuple[int
     for y, m, category, total in rows:
         result[(int(y), int(m))][category] = float(total)
     return result
+
+
+def pct_change(current: float, previous: float) -> float | None:
+    if previous == 0:
+        return None
+    return round((current - previous) / previous * 100, 1)

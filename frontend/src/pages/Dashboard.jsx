@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { DollarSign, Receipt, Calendar, Download, Filter, X, AlertTriangle } from 'lucide-react'
 import { getDashboard, exportCSV } from '../api/expenses'
-import { getBudgets } from '../api/features'
+import { getBudgets, getTrends } from '../api/features'
 import { CATEGORIES, CHART_BLUE, inputCls, money } from '../constants'
 import BudgetBars from '../components/BudgetBars'
+import TrendsPanel from '../components/TrendsPanel'
 
 const REFRESH_MS = 15000
 
@@ -25,6 +26,7 @@ function StatCard({ icon: Icon, label, value, color }) {
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
+  const [trends, setTrends] = useState(null)
   const [budgets, setBudgets] = useState([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({ category: '', start_date: '', end_date: '' })
@@ -36,9 +38,10 @@ export default function Dashboard() {
   useEffect(() => {
     let cancelled = false
     const refresh = () =>
-      Promise.all([getDashboard(activeParams), getBudgets()]).then(([s, b]) => {
+      Promise.all([getDashboard(activeParams), getTrends(6), getBudgets()]).then(([s, t, b]) => {
         if (cancelled) return
         setStats(s)
+        setTrends(t)
         setBudgets(b)
         setUpdatedAt(new Date())
       }).finally(() => !cancelled && setLoading(false))
@@ -93,7 +96,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2">{trends && <TrendsPanel trends={trends} />}</div>
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-gray-800">This Month's Budgets</h2>

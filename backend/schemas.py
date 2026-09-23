@@ -85,3 +85,24 @@ class BudgetStatus(BaseModel):
     remaining: float
     percent: float
     status: Literal["ok", "warning", "over"]
+
+
+class MonthTotal(BaseModel):
+    month: str
+    total: float
+
+
+class CategoryChange(BaseModel):
+    category: str
+    this_month: float
+    last_month: float
+    change_pct: Optional[float]
+
+
+class Trends(BaseModel):
+    months: list[MonthTotal]
+    this_month_total: float
+    last_month_total: float
+    change_pct: Optional[float]
+    projected_month_total: float
+    categories: list[CategoryChange]
