@@ -168,3 +168,11 @@ class ImportCommit(BaseModel):
 
 class ImportResult(BaseModel):
     created: int
+
+
+class ReceiptScan(BaseModel):
+    title: str
+    amount: float
+    date: Optional[Date]
+    category: str
+    notes: str

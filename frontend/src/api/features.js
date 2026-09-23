@@ -21,3 +21,6 @@ const upload = (url, file) => {
 }
 export const previewImport = (file) => upload('/import/preview', file)
 export const commitImport = (rows) => client.post('/import/commit', { rows }).then(data)
+
+export const receiptsEnabled = () => client.get('/receipts/enabled').then(r => r.data.enabled)
+export const scanReceipt = (file) => upload('/receipts/scan', file)

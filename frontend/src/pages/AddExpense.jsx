@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Camera, Loader2, Check } from 'lucide-react'
 import { createExpense, updateExpense, getExpense } from '../api/expenses'
+import { receiptsEnabled, scanReceipt } from '../api/features'
 import { CATEGORIES } from '../constants'
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -13,16 +15,38 @@ export default function AddExpense() {
   const [form, setForm] = useState(empty)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [canScan, setCanScan] = useState(false)
+  const [scanning, setScanning] = useState(false)
+  const [scanned, setScanned] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
     if (isEdit) {
       getExpense(id).then(exp =>
         setForm({ title: exp.title, amount: String(exp.amount), category: exp.category, date: exp.date, notes: exp.notes || '' }))
+    } else {
+      receiptsEnabled().then(setCanScan).catch(() => setCanScan(false))
     }
   }, [id])
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
+
+  const handleScan = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setError('')
+    setScanning(true)
+    try {
+      const r = await scanReceipt(file)
+      setForm({ title: r.title, amount: String(r.amount), category: r.category, date: r.date || today(), notes: r.notes })
+      setScanned(true)
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Could not scan that receipt')
+    } finally {
+      setScanning(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -46,9 +70,28 @@ export default function AddExpense() {
     <div className="max-w-lg">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{isEdit ? 'Edit Expense' : 'Add Expense'}</h1>
 
+      {canScan && (
+        <label className={`mb-4 flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-4 transition ${scanning ? 'opacity-70' : 'cursor-pointer hover:border-sky-400'}`}>
+          <div className="p-2.5 rounded-lg bg-sky-50">
+            {scanning ? <Loader2 size={20} className="text-sky-600 animate-spin" /> : <Camera size={20} className="text-sky-600" />}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">{scanning ? 'Reading your receipt...' : 'Scan a receipt'}</p>
+            <p className="text-xs text-gray-500">{scanning ? 'Takes a few seconds' : 'Upload a photo to fill in the form'}</p>
+          </div>
+          <input type="file" accept="image/*" capture="environment" onChange={handleScan} disabled={scanning} className="sr-only" />
+        </label>
+      )}
+
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <div className="bg-red-50 text-red-600 text-sm rounded-lg px-4 py-2">{error}</div>}
+          {scanned && (
+            <div className="flex items-center gap-2 bg-sky-50 text-sky-800 text-sm rounded-lg px-4 py-2">
+              <Check size={16} aria-hidden="true" /> Filled in from the receipt, double check before saving.
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="title">Title</label>
             <input id="title" type="text" required value={form.title} onChange={set('title')} className={fieldCls} placeholder="e.g. Grocery run" />
