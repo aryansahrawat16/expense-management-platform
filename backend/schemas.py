@@ -145,3 +145,26 @@ class RecurringOut(BaseModel):
     next_date: Date
     active: bool
     model_config = {"from_attributes": True}
+
+
+class ImportRow(BaseModel):
+    title: str
+    amount: float
+    date: Date
+    category: str
+    category_source: Literal["history", "keyword", "default"]
+    duplicate: bool
+
+
+class ImportPreview(BaseModel):
+    rows: list[ImportRow]
+    skipped: int
+    detected_format: str
+
+
+class ImportCommit(BaseModel):
+    rows: list[ExpenseCreate] = Field(max_length=2000)
+
+
+class ImportResult(BaseModel):
+    created: int

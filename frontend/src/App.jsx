@@ -8,6 +8,7 @@ import Expenses from './pages/Expenses'
 import AddExpense from './pages/AddExpense'
 import Budgets from './pages/Budgets'
 import Recurring from './pages/Recurring'
+import Import from './pages/Import'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/edit/:id" element={<ProtectedRoute><AddExpense /></ProtectedRoute>} />
         <Route path="/budgets" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />
         <Route path="/recurring" element={<ProtectedRoute><Recurring /></ProtectedRoute>} />
+        <Route path="/import" element={<ProtectedRoute><Import /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </AuthProvider>

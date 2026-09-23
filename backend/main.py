@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import auth, budgets, expenses, insights, recurring
+from routers import auth, budgets, expenses, imports, insights, recurring
 
 Base.metadata.create_all(bind=engine)
 
@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (auth, expenses, budgets, insights, recurring):
+for r in (auth, expenses, budgets, insights, recurring, imports):
     app.include_router(r.router)
 
 
