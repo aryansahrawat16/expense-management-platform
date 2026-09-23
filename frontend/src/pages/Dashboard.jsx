@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { DollarSign, Receipt, Calendar, Download, Filter, X } from 'lucide-react'
+import { DollarSign, Receipt, Calendar, Download, Filter, X, AlertTriangle } from 'lucide-react'
 import { getDashboard, exportCSV } from '../api/expenses'
+import { getBudgets } from '../api/features'
 import { CATEGORIES, CHART_BLUE, inputCls, money } from '../constants'
+import BudgetBars from '../components/BudgetBars'
 
 const REFRESH_MS = 15000
 
@@ -22,6 +25,7 @@ function StatCard({ icon: Icon, label, value, color }) {
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
+  const [budgets, setBudgets] = useState([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({ category: '', start_date: '', end_date: '' })
   const [updatedAt, setUpdatedAt] = useState(null)
@@ -32,9 +36,10 @@ export default function Dashboard() {
   useEffect(() => {
     let cancelled = false
     const refresh = () =>
-      getDashboard(activeParams).then(s => {
+      Promise.all([getDashboard(activeParams), getBudgets()]).then(([s, b]) => {
         if (cancelled) return
         setStats(s)
+        setBudgets(b)
         setUpdatedAt(new Date())
       }).finally(() => !cancelled && setLoading(false))
 
@@ -54,6 +59,7 @@ export default function Dashboard() {
 
   const hasFilters = Object.keys(activeParams).length > 0
   const setFilter = (field) => (e) => setFilters(f => ({ ...f, [field]: e.target.value }))
+  const alerts = budgets.filter(b => b.status !== 'ok')
   const barHeight = Math.max(120, stats.category_breakdown.length * 34)
 
   return (
@@ -66,6 +72,39 @@ export default function Dashboard() {
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Updated {updatedAt.toLocaleTimeString()}
             </p>
+          )}
+        </div>
+      </div>
+
+      {alerts.length > 0 && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-900">
+          <AlertTriangle size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
+          <div>
+            <p className="font-medium">Budget alert</p>
+            <p>
+              {alerts.map((b, i) => (
+                <span key={b.id}>
+                  {i > 0 && ', '}
+                  {b.category} is {b.status === 'over' ? `over by ${money(-b.remaining)}` : `at ${b.percent}%`}
+                </span>
+              ))}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-800">This Month's Budgets</h2>
+            <Link to="/budgets" className="text-xs font-medium text-sky-600 hover:underline">Manage</Link>
+          </div>
+          {budgets.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No budgets yet. <Link to="/budgets" className="text-sky-600 hover:underline">Set a monthly limit</Link> for a category to track it here.
+            </p>
+          ) : (
+            <BudgetBars budgets={budgets} />
           )}
         </div>
       </div>

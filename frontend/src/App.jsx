@@ -6,6 +6,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Expenses from './pages/Expenses'
 import AddExpense from './pages/AddExpense'
+import Budgets from './pages/Budgets'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
         <Route path="/add" element={<ProtectedRoute><AddExpense /></ProtectedRoute>} />
         <Route path="/edit/:id" element={<ProtectedRoute><AddExpense /></ProtectedRoute>} />
+        <Route path="/budgets" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </AuthProvider>

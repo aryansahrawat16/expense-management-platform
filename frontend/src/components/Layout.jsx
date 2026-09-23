@@ -1,11 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { Wallet, LayoutDashboard, List, PlusCircle, LogOut } from 'lucide-react'
+import { Wallet, LayoutDashboard, List, PlusCircle, LogOut, PiggyBank } from 'lucide-react'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/expenses', label: 'Expenses', icon: List },
   { to: '/add', label: 'Add Expense', icon: PlusCircle },
+  { to: '/budgets', label: 'Budgets', icon: PiggyBank },
 ]
 
 export default function Layout({ children }) {

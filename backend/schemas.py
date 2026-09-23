@@ -1,5 +1,5 @@
 from datetime import date as Date, datetime
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
 from pydantic import AfterValidator, BaseModel, EmailStr, Field
 from categories import CATEGORIES
 
@@ -70,3 +70,18 @@ class DashboardStats(BaseModel):
     total_this_month: float
     total_expenses: int
     category_breakdown: list[CategorySummary]
+
+
+class BudgetIn(BaseModel):
+    category: Category
+    monthly_limit: float = Field(gt=0, le=1_000_000)
+
+
+class BudgetStatus(BaseModel):
+    id: int
+    category: str
+    monthly_limit: float
+    spent: float
+    remaining: float
+    percent: float
+    status: Literal["ok", "warning", "over"]

@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Date, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import (
+    Column, Date, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -12,6 +14,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     expenses = relationship("Expense", back_populates="owner", cascade="all, delete")
+    budgets = relationship("Budget", cascade="all, delete")
 
 
 class Expense(Base):
@@ -25,3 +28,12 @@ class Expense(Base):
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     owner = relationship("User", back_populates="expenses")
+
+
+class Budget(Base):
+    __tablename__ = "budgets"
+    __table_args__ = (UniqueConstraint("owner_id", "category", name="uq_budget_owner_category"),)
+    id = Column(Integer, primary_key=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    category = Column(String, nullable=False)
+    monthly_limit = Column(Float, nullable=False)

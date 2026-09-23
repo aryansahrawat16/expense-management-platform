@@ -23,3 +23,9 @@ export const money = (n) =>
   n.toLocaleString('en-CA', { style: 'currency', currency: 'CAD' })
 
 export const CHART_BLUE = '#2a78d6'
+
+export const STATUS = {
+  ok: { color: '#0ca30c', label: 'On track', text: 'text-green-700' },
+  warning: { color: '#fab219', label: 'Close to limit', text: 'text-amber-700' },
+  over: { color: '#d03b3b', label: 'Over budget', text: 'text-red-700' },
+}
